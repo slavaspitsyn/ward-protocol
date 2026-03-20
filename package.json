@@ -45,7 +45,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vaclavnew/ward-protocol.git"
+    "url": "https://github.com/slavaspytsyn/ward-protocol.git"
   },
   "homepage": "https://getward.org",
   "dependencies": {
