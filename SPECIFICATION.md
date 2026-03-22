@@ -292,6 +292,101 @@ Instead of binary "allow" or "block," WARD-Pay introduces a third option: **"pai
 
 For high-volume crawlers, WARD-Pay supports bulk access tokens — prepay for N requests at a discounted rate. This reduces per-request overhead while maintaining per-content accounting.
 
+## 6. Attribution Extension (WARD-Attribute) — Draft
+
+> **Status: Draft.** This extension is under development and not yet part of the stable specification.
+
+WARD-Attribute extends the ward.json policy with source attribution requirements, enabling website owners to allow AI bots to use their content **on the condition that the source is cited** when presenting information to end users.
+
+### Concept
+
+Many website owners are not against AI crawling — they want their content to reach more people. But when an AI chatbot presents information without citing the source, the original author loses traffic, credit, and SEO value. WARD-Attribute introduces a fourth access mode: **"use it, but cite me."**
+
+This creates a positive incentive for adoption: instead of purely defensive ("block bots"), WARD becomes a **growth tool** — sites that declare attribution rules get cited by WARD-Certified AI systems, driving traffic back.
+
+### Use Cases
+
+- **Bloggers & media:** Content is freely available to AI, but chatbot responses must link to the original article
+- **GEO (Generative Engine Optimization):** Sites optimize for AI citation, gaining visibility through chatbots
+- **Knowledge bases & documentation:** Open access with mandatory backlinks
+- **Legal compliance:** EU Copyright Directive already requires attribution — ward.json makes it machine-readable
+
+### ward.json Attribution Fields
+
+```json
+{
+  "version": "1.0",
+  "enforcement": "server",
+  "default": {
+    "training": false,
+    "summarization": true,
+    "indexing": true,
+    "attribution": {
+      "required": true,
+      "source_url": true,
+      "publisher_name": "Example GmbH"
+    }
+  },
+  "rules": [
+    {
+      "path": "/blog/*",
+      "training": true,
+      "summarization": true,
+      "attribution": {
+        "required": true,
+        "source_url": true
+      }
+    },
+    {
+      "path": "/impressum",
+      "training": false,
+      "attribution": {
+        "required": false
+      }
+    }
+  ]
+}
+```
+
+### Attribution Object Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `required` | boolean | Whether attribution is required when using this content |
+| `source_url` | boolean | Must include link to the original page URL |
+| `publisher_name` | string | Publisher name to display in citation (optional) |
+
+### How It Works
+
+1. AI bot requests a page
+2. WARD middleware detects bot, reads ward.json
+3. If `attribution.required: true` → serve full content with `X-WARD-Attribution: required` header
+4. WARD-Certified AI system stores attribution metadata alongside the content
+5. When generating a response using this content, the AI system cites the source URL and/or publisher name
+6. Compliance is verifiable: monitoring dashboard tracks whether certified bots honor attribution rules
+
+### New Response Headers
+
+| Header | Example | Description |
+|--------|---------|-------------|
+| `X-WARD-Attribution` | `required` | Attribution requirement for this content |
+| `X-WARD-Source-URL` | `https://example.com/blog/post` | Canonical source URL to cite |
+| `X-WARD-Publisher` | `Example GmbH` | Publisher name for citation |
+
+### Relationship with WARD-Pay
+
+WARD-Attribute and WARD-Pay are complementary:
+
+| Scenario | Training | Attribution | Payment |
+|----------|----------|-------------|---------|
+| Block everything | `false` | — | — |
+| Free, no conditions | `true` | `false` | — |
+| Free, but cite me | `true` | `required` | — |
+| Paid, no citation needed | `"paid"` | `false` | `gnu-taler` |
+| Paid + must cite | `"paid"` | `required` | `gnu-taler` |
+
+This spectrum — from full block to paid access with attribution — gives website owners granular control over how AI systems interact with their content.
+
 ## License
 
 This specification is released under the MIT License.
